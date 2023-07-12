@@ -9,16 +9,16 @@ import java.util.Random;
 
 public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
 
-    private int colonySize;
-    private int maxIterations;
-    private int maxTrials;
-    private double abandonProbability;
-    private int numItems;
-    private int[] weights;
-    private int[] values;
-    private int maxWeight;
-    private double deMutationFactor;
-    private double deCrossoverRate;
+    private int tamColonia;
+    private int totalIteracoes;
+    private int limiteTentativas;
+    private double probabilidadeDeAbandono;
+    private int qtdInstancias;
+    private int[] pesos;
+    private int[] valores;
+    private int capacidadeMochila;
+    private double fatorDeMutacaoDE;
+    private double taxaCruzamento;
     private Random random;
     private List<Bee> coloniaDeAbelhas;
 
@@ -32,12 +32,14 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
         fatorMutacaoED, taxaCrossoverED);
 
         inicializarColonia();
-        Bee bestBee = getBestBee();
+        Bee melhorAbelha = getMelhorAbelha();
 
-        for (int i = 0; i < maxIterations; i++) {
+        /** ITERA SOBRE OS ITENS OTIMOS*/
+        for (int i = 0; i < totalIteracoes; i++) {
             for (Bee bee : coloniaDeAbelhas) {
-                if (bee.getTrials() >= maxTrials) {
-                    if (random.nextDouble() < abandonProbability) {
+                //System.out.println("trials: " + bee.getTrials());
+                if (bee.getTrials() >= limiteTentativas) {
+                    if (random.nextDouble() < probabilidadeDeAbandono) {
                         abandonarAbelha(bee);
                     } else {
                         explorarAbelha(bee);
@@ -47,19 +49,23 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
                 }
             }
 
-            Bee currentBestBee = getBestBee();
-            if (currentBestBee.getFitness() > bestBee.getFitness()) {
-                bestBee = currentBestBee;
+            Bee melhorAbelhaAtual = getMelhorAbelha();
+            //System.out.println("FITNESS: " + melhorAbelhaAtual.getValorObtidoBee() + "||" + " fitness anterior: " + melhorAbelha.getValorObtidoBee());
+            if (melhorAbelhaAtual.getValorObtidoBee() > melhorAbelha.getValorObtidoBee()) {
+                melhorAbelha = melhorAbelhaAtual;
             }
+//            if(!(i>=33)){
+//                System.out.println("SOLUTION: " + melhorAbelha.getSolution()[i]);
+//            }
         }
 
-        return bestBee.getSolution();
+        return melhorAbelha.getSolucoesBin();
     }
 
 
 
     private void inicializarColonia() {
-        for (int i = 0; i < colonySize; i++) {
+        for (int i = 0; i < tamColonia; i++) {
             int[] solution = gerarSolucaoAleatoria();
             double fitness = avaliarSolucao(solution);
             Bee bee = new Bee(solution, fitness);
@@ -68,8 +74,8 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
     }
 
     private int[] gerarSolucaoAleatoria() {
-        int[] solution = new int[numItems];
-        for (int i = 0; i < numItems; i++) {
+        int[] solution = new int[qtdInstancias];
+        for (int i = 0; i < qtdInstancias; i++) {
             solution[i] = random.nextInt(2);
         }
         return solution;
@@ -83,10 +89,10 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
     }
 
     private void explorarAbelha(Bee bee) {
-        int[] newSolution = gerarSolucaoED(bee.getSolution());
+        int[] newSolution = gerarSolucaoED(bee.getSolucoesBin());
         double newFitness = avaliarSolucao(newSolution);
 
-        if (newFitness > bee.getFitness()) {
+        if (newFitness > bee.getValorObtidoBee()) {
             bee.updateSolution(newSolution, newFitness);
         } else {
             bee.incrementTrials();
@@ -98,24 +104,24 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
         int pesoTotal = 0;
         int valortotal = 0;
 
-        for (int i = 0; i < numItems; i++) {
+        for (int i = 0; i < qtdInstancias; i++) {
             if (solution[i] == 1) {
-                pesoTotal += weights[i];
-                valortotal += values[i];
+                pesoTotal += pesos[i];
+                valortotal += valores[i];
             }
         }
 
-        if (pesoTotal > maxWeight) {
+        if (pesoTotal > capacidadeMochila) {
             valortotal = 0; // zera se exceder o peso máximo, indicando que a solução pode ser descartada
         }
 
         return valortotal;
     }
 
-    private Bee getBestBee() {
+    private Bee getMelhorAbelha() {
         Bee bestBee = coloniaDeAbelhas.get(0);
         for (Bee bee : coloniaDeAbelhas) {
-            if (bee.getFitness() > bestBee.getFitness()) {
+            if (bee.getValorObtidoBee() > bestBee.getValorObtidoBee()) {
                 bestBee = bee;
             }
         }
@@ -131,11 +137,11 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
         int[] randomBeeSolution2 = getAbelhaAleatoria();
         int[] randomBeeSolution3 = getAbelhaAleatoria();
 
-        int[] newSolution = new int[numItems];
-        for (int i = 0; i < numItems; i++) {
-            if (random.nextDouble() < deCrossoverRate) {
-                newSolution[i] = (int) (randomBeeSolution1[i] + (deMutationFactor * (randomBeeSolution2[i] - randomBeeSolution3[i])));
-                newSolution[i] = Math.max(0, Math.min(1, newSolution[i])); // Limitar entre 0 e 1
+        int[] newSolution = new int[qtdInstancias];
+        for (int i = 0; i < qtdInstancias; i++) {
+            if (random.nextDouble() < taxaCruzamento) {
+                newSolution[i] = (int) (randomBeeSolution1[i] + (fatorDeMutacaoDE * (randomBeeSolution2[i] - randomBeeSolution3[i])));
+                newSolution[i] = Math.max(0, Math.min(1, newSolution[i])); //
             } else {
                 newSolution[i] = currentSolution[i];
             }
@@ -144,8 +150,8 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
     }
 
     private int[] getAbelhaAleatoria() {
-        int indiceAbelhaRandom = random.nextInt(colonySize);
-        return coloniaDeAbelhas.get(indiceAbelhaRandom).getSolution();
+        int indiceAbelhaRandom = random.nextInt(tamColonia);
+        return coloniaDeAbelhas.get(indiceAbelhaRandom).getSolucoesBin();
     }
 
     /**metodos auxilizares*/
@@ -153,16 +159,16 @@ public class OtimizadorHibridoServiceImpl implements OtimizadorHibridoService {
                             int numItens, int[] pesosItens, int[] valoresItens, int limiteMochila,
                             double fatorMutacaoED, double taxaCrossoverED) {
 
-        this.colonySize = tamanhoColonia;
-        this.maxIterations = maxIteracoes;
-        this.maxTrials = maxTentativas;
-        this.abandonProbability = probabilidadeAbandono;
-        this.numItems = numItens;
-        this.weights = pesosItens;
-        this.values = valoresItens;
-        this.maxWeight = limiteMochila;
-        this.deMutationFactor = fatorMutacaoED;
-        this.deCrossoverRate = taxaCrossoverED;
+        this.tamColonia = tamanhoColonia;
+        this.totalIteracoes = maxIteracoes;
+        this.limiteTentativas = maxTentativas;
+        this.probabilidadeDeAbandono = probabilidadeAbandono;
+        this.qtdInstancias = numItens;
+        this.pesos = pesosItens;
+        this.valores = valoresItens;
+        this.capacidadeMochila = limiteMochila;
+        this.fatorDeMutacaoDE = fatorMutacaoED;
+        this.taxaCruzamento = taxaCrossoverED;
         this.random = new Random();
         this.coloniaDeAbelhas = new ArrayList<>();
     }

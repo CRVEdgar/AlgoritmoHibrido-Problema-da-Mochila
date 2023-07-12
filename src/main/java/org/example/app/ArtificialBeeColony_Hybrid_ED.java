@@ -42,15 +42,12 @@ public class ArtificialBeeColony_Hybrid_ED {
             valoresItens[i] = objetos.get(i).getValorTotal().intValue();
         }
 
-//        ArtificialBeeColony_Hybrid_ED ABC_ED_mochila = new ArtificialBeeColony_Hybrid_ED(qtdAbelhas,
-//                maxIteracoes, maxTentativas, probabilidadeAbandono, numItens, pesosItens, valoresItens, limiteMochila,
-//                fatorMutacaoED, taxaCrossoverED);
 
         int[] solucoesOtimas = otimizadorHibridoService.otimizar(tamanhoColonia,
                 maxIteracoes, maxTentativas, probabilidadeAbandono, numItens, pesosItens, valoresItens, limiteMochila,
                 fatorMutacaoED, taxaCrossoverED);
 
-//        int[] solucoesOtimas = ABC_ED_mochila.otimizar();
+
         /***/ long finish = System.currentTimeMillis();
 
         System.out.println("Melhores Soluções:");
@@ -73,22 +70,10 @@ public class ArtificialBeeColony_Hybrid_ED {
         ObjetosArmazenados objetosNaMochila_OrderByPeso = service.solverGulosoByPeso(melhoresItens);
         ObjetosArmazenados objetosNaMochila_OrderByValor = service.solverGulosoByValor(melhoresItens);
 
-//        System.out.println("\n >>>>>>>>> Considerando um algoritmo guloso no qual se escolha o objeto MAIS LEVE, TEMOS:");
-//        System.out.println("\nOBJETOS NA MOCHILA: ");
-//        objetosNaMochila_OrderByPeso.getObjetoList().forEach(objeto -> {
-//            System.out.println("ITEM INDICE:" + objeto.getRowIndex() + " || PESO: " + objeto.getPeso()
-//                    + " || VALOR TOTAL: " + objeto.getValorTotal());
-//        });
         System.out.println("\n >>>>>>>>> Considerando um algoritmo guloso no qual se escolha o objeto MAIS LEVE, TEMOS:");
         System.out.println("\nPESO MÍNIMO ATINGIDO: " + objetosNaMochila_OrderByPeso.getPesoAtingido()
                 + " || PARA O VALOR VALOR MAXIMO: " + objetosNaMochila_OrderByPeso.getValorTotal());
 
-
-//        System.out.println("\n >>>>>>>>> Considerando um algoritmo guloso no qual se escolha o objeto de MAIOR VALOR, TEMOS:");
-//        System.out.println("\nOBJETOS NA MOCHILA: ");
-//        objetosNaMochila_OrderByValor.getObjetoList().forEach(objeto -> {
-//            System.out.println("ITEM INDICE:" + objeto.getRowIndex() + " || PESO: " + objeto.getPeso() + " || VALOR TOTAL: " + objeto.getValorTotal());
-//        });
 
         System.out.println("\n >>>>>>>>> Considerando um algoritmo guloso no qual se escolha o objeto de MAIOR VALOR, TEMOS:");
         System.out.println("\nPESO MÍNIMO ATINGIDO: " + objetosNaMochila_OrderByValor.getPesoAtingido() + " || PARA O VALOR VALOR MAXIMO: " + objetosNaMochila_OrderByValor.getValorTotal());
